@@ -16,6 +16,8 @@ public class TestData {
 
 public class InputConfig : ScriptableObject
 {
+    public InputReferences[] inputReferences;
+
     public Texture2D profilePictureSmall;
     public string characterName;
     public sex gender;
