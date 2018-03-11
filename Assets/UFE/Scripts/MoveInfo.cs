@@ -35,6 +35,7 @@ public enum PossibleStates {
 	BackJump,
 	Down
 }
+// 战斗姿态，有的角色使用特定技能后动作完全改变
 public enum CombatStances {
 	Stance1,
 	Stance2,
@@ -292,6 +293,7 @@ public class MoveInfo: ScriptableObject {
 	public SoundEffect[] soundEffects = new SoundEffect[0];
 	public CameraMovement[] cameraMovements = new CameraMovement[0];
 	
+    // 一个动作的多段攻击？在动作文件中activeframe 中可以设置 hit数组
 	public Hit[] hits = new Hit[0];
 	public BlockArea blockableArea;
 	public InvincibleBodyParts[] invincibleBodyParts = new InvincibleBodyParts[0];

@@ -161,18 +161,23 @@ public class ControlsScript : MonoBehaviour {
 	}
 
 	void Update() {
+        //Debug.Log(gameObject.name+"transform.position.y:"+ transform.position.y);
+        // 如不在地上或物理冻结或当前有动作执行，修改角色的旋转
 		if (!myPhysicsScript.isGrounded() || myPhysicsScript.freeze || currentMove != null) fixCharacterRotation();
 		//if ((currentMove != null && !currentMove.cancelable) || myPhysicsScript.freeze || isBlocking) return;
 		//if (myPhysicsScript.freeze || isBlocking) return;
+        // 防御中
 		if (isBlocking) return;
 		if (!myPhysicsScript.freeze && myPhysicsScript.isGrounded() && currentState != PossibleStates.Down) testCharacterRotation(30);
-		if (stunned || blockStunned) return;
-
+        // 击晕
+        if (stunned || blockStunned) return;
+        // 存放动作时间减少
 		if (!myPhysicsScript.freeze && storedMoveTime > 0) storedMoveTime -= Time.deltaTime;
 		if (storedMoveTime < 0){
 			storedMoveTime = 0;
 			storedMove = null;
 		}
+        // 执行存放动作
 		if ((currentMove == null || currentMove.cancelable) && storedMove != null && !myPhysicsScript.freeze) {
 			if (currentMove != null) KillCurrentMove();
 			if (System.Array.IndexOf(storedMove.possibleStates, currentState) != -1) currentMove = storedMove;
@@ -181,7 +186,7 @@ public class ControlsScript : MonoBehaviour {
 		}
 
 		if (!myPhysicsScript.freeze) potentialBlock = false;
-		
+		// 执行默认idle动作
 		if (!myPhysicsScript.freeze && introPlayed && myPhysicsScript.isGrounded() && isAxisRested() && !character.GetComponent<Animation>().IsPlaying("idle")){
 			bool playIdle = true;
 			foreach(AnimationState animState in character.GetComponent<Animation>()){
@@ -200,7 +205,7 @@ public class ControlsScript : MonoBehaviour {
 				//if (GlobalScript.prefs.blockOptions.blockType == BlockType.AutoBlock) potentialBlock = true;
 			}
 		}
-
+        // 开始战斗
 		if (!roundMsgCasted && introPlayed && opControlsScript.introPlayed && gameObject.name == "Player1"){
 			UFE.FireRoundBegins(UFE.config.currentRound);
 			if (UFE.config.currentRound < UFE.config.roundOptions.totalRounds){
@@ -215,6 +220,7 @@ public class ControlsScript : MonoBehaviour {
 		if (!introPlayed || !opControlsScript.introPlayed) return;
 		if (UFE.config.lockInputs && !UFE.config.roundOptions.allowMovement) return;
 		if (UFE.config.lockMovements) return;
+        // 动作替换
 		foreach (InputReferences inputRef in inputReferences) {
 			if ((inputRef.engineRelatedButton == ButtonPress.Down
 				|| inputRef.engineRelatedButton == ButtonPress.Up)
@@ -250,9 +256,10 @@ public class ControlsScript : MonoBehaviour {
 					return;
 				}
 			}
-			
+			// 方向键判断
 			if (inputRef.inputType != InputType.Button && Input.GetAxisRaw(inputRef.inputButtonName) != 0) {
 				bool axisPressed = false;
+                // 左右键，前后移动、格挡判断
 				if (inputRef.inputType == InputType.HorizontalAxis) {
 					// Check for potential blocking
 					if (inputRef.engineRelatedButton == ButtonPress.Back && UFE.config.blockOptions.blockType == BlockType.HoldBack){
@@ -281,7 +288,9 @@ public class ControlsScript : MonoBehaviour {
 						potentialParry = UFE.config.blockOptions.parryTiming;
 					}
 				}else{
+                    // 上下键
 					if (Input.GetAxisRaw(inputRef.inputButtonName) > 0) {
+                        // 向上跳跃
 						inputRef.engineRelatedButton = ButtonPress.Up;
 						if (currentMove == null) {
 							if (myPhysicsScript.isGrounded()) myPhysicsScript.jump();
@@ -293,6 +302,7 @@ public class ControlsScript : MonoBehaviour {
 						}
 						inputRef.heldDown += Time.deltaTime;
 					}else if (Input.GetAxisRaw(inputRef.inputButtonName) < 0) {
+                        // 向下蹲伏
 						inputRef.engineRelatedButton = ButtonPress.Down;
 						if (inputRef.heldDown == 0) axisPressed = true;
 						inputRef.heldDown += Time.deltaTime;
@@ -316,19 +326,22 @@ public class ControlsScript : MonoBehaviour {
 				}
 			}
 			
+            // 按钮判断
 			if (inputRef.inputType == InputType.Button && !UFE.config.lockInputs){
 				if (Input.GetButton(inputRef.inputButtonName)) {
+                    // 判断是否是防御按钮
 					if (myMoveSetScript.compareBlockButtons(inputRef.engineRelatedButton)) {
 						potentialBlock = true;
 						CheckBlocking(true);
 					}
-					
+					// 判断是否是躲避按钮
 					if (inputRef.heldDown == 0 && potentialParry == 0 && currentMove == null && 
 						myMoveSetScript.compareParryButtons(inputRef.engineRelatedButton)) {
 						potentialParry = UFE.config.blockOptions.parryTiming;
 					}
 					
 					inputRef.heldDown += Time.deltaTime;
+					// 两个按钮按下 获取能执行的动作
 					if (inputRef.heldDown <= UFE.config.plinkingDelay) {
 						foreach (InputReferences inputRef2 in inputReferences) {
 							if (inputRef2.inputButtonName != inputRef.inputButtonName && Input.GetButtonDown(inputRef2.inputButtonName)) {
@@ -344,7 +357,7 @@ public class ControlsScript : MonoBehaviour {
 					}
 				}
 				
-				
+				// 单个按钮按下时可能执行的动作
 				if (Input.GetButtonDown(inputRef.inputButtonName)) {
 					storedMove = myMoveSetScript.getMove(new ButtonPress[]{inputRef.engineRelatedButton}, 0, currentMove, false);
 					if ((currentMove == null || currentMove.cancelable) && storedMove != null) {
@@ -356,7 +369,7 @@ public class ControlsScript : MonoBehaviour {
 						return;
 					}
 				}
-				
+				// 执行只有当按钮弹起才执行的动作
 				if (Input.GetButtonUp(inputRef.inputButtonName)) {
 					storedMove = myMoveSetScript.getMove(new ButtonPress[]{inputRef.engineRelatedButton}, 0, currentMove, true);
 					if ((currentMove == null || currentMove.cancelable) && storedMove != null) {
@@ -365,10 +378,8 @@ public class ControlsScript : MonoBehaviour {
 					}else if (storedMove != null){
 						storedMoveTime = UFE.config.storedExecutionDelay;
 						return;
-					}else if (storedMove != null){
-						storedMoveTime = UFE.config.storedExecutionDelay;
-						return;
 					}
+                    // 按钮弹起后不再做潜在的防御
 					if (myMoveSetScript.compareBlockButtons(inputRef.engineRelatedButton)) {
 						potentialBlock = false;
 						CheckBlocking(false);
@@ -409,8 +420,8 @@ public class ControlsScript : MonoBehaviour {
 
 
 		if (currentMove != null) potentialParry = 0;
-
-		if (gameObject.name == "Player1" && !introPlayed && currentMove == null){
+        // 获得角色开局动画
+        if (gameObject.name == "Player1" && !introPlayed && currentMove == null){
 			currentMove = myMoveSetScript.getIntro();
 			if (currentMove == null) {
 				introPlayed = true;
@@ -428,7 +439,7 @@ public class ControlsScript : MonoBehaviour {
 
 		
 		if (ignoreAnimationTransform) character.transform.localPosition = new Vector3(0, 0, 0);
-		
+		// 两个hitbox碰撞的越多，退的越远（攻击碰撞？）
 		if (Vector3.Distance(transform.position, opponent.transform.position) < 10) {
 			float totalHits = myHitBoxesScript.testCollision(opHitBoxesScript.hitBoxes);
 			if (totalHits > 0) {
@@ -440,6 +451,7 @@ public class ControlsScript : MonoBehaviour {
 			}
 		}
 		
+        // 拉近效果？
 		if (pullInSpeed > 0){
 			transform.position = Vector3.Lerp(transform.position, pullInLocation, Time.deltaTime * pullInSpeed);
 			if (Vector3.Distance(pullInLocation, transform.position) <= .1f) pullInSpeed = 0;
@@ -460,7 +472,7 @@ public class ControlsScript : MonoBehaviour {
 				debugger.text += "normalizedTime: "+ character.animation[currentMove.name].normalizedTime + "\n";
 				debugger.text += "time: "+ character.animation[currentMove.name].time + "\n";
 			}*/
-
+            // 动作还没开始执行时，赋值动画参数
 			if (currentMove.currentFrame == 0) {
 				if (character.GetComponent<Animation>()[currentMove.name] == null) Debug.LogError("Animation for move '"+ currentMove.moveName +"' not found!");
 				character.GetComponent<Animation>()[currentMove.name].time = 0;
@@ -471,7 +483,7 @@ public class ControlsScript : MonoBehaviour {
 			// ANIMATION FRAME DATA
 			if (!animationPaused) currentMove.currentFrame ++;
 			if (currentMove.currentFrame == 1) AddGauge(currentMove.gaugeGainOnMiss);
-
+            // 根据配置的动画类型 设置当前动画的时间点
 			if (UFE.config.animationFlow == AnimationFlow.MorePrecision){
 				character.GetComponent<Animation>()[currentMove.name].speed = 0;
 				AnimationState animState = character.GetComponent<Animation>()[currentMove.name];
@@ -479,7 +491,7 @@ public class ControlsScript : MonoBehaviour {
 				//animState.time = ((float)currentMove.currentFrame / (float)GlobalScript.prefs.framesPerSeconds) / (1/currentMove.animationSpeed);
 			}
 
-
+            // 生成该动作的发射物
 			foreach (Projectile projectile in currentMove.projectiles){
 				if (!projectile.casted && currentMove.currentFrame >= projectile.castingFrame){
 					if (projectile.projectilePrefab == null) continue;
@@ -498,7 +510,7 @@ public class ControlsScript : MonoBehaviour {
 					pTempScript.mirror = mirror;
 				}
 			}
-			
+			// 播放动作的特效
 			foreach (MoveParticleEffect particleEffect in currentMove.particleEffects){
 				if (!particleEffect.casted && currentMove.currentFrame >=  particleEffect.castingFrame){
 					if (particleEffect.particleEffect.prefab == null) 
@@ -510,7 +522,7 @@ public class ControlsScript : MonoBehaviour {
 					Destroy(pTemp, particleEffect.particleEffect.duration);
 				}
 			}
-			
+			// 应用动作施加的力
 			foreach (AppliedForce addedForce in currentMove.appliedForces){
 				if (!addedForce.casted && currentMove.currentFrame >= addedForce.castingFrame){
 					myPhysicsScript.resetForces(addedForce.resetPreviousHorizontal, addedForce.resetPreviousVertical);
@@ -518,6 +530,8 @@ public class ControlsScript : MonoBehaviour {
 					addedForce.casted = true;
 				}
 			}
+
+            // 播放动作的音效
 			foreach (SoundEffect soundEffect in currentMove.soundEffects){
 				if (!soundEffect.casted && currentMove.currentFrame >= soundEffect.castingFrame){
 					if (UFE.config.soundfx) Camera.main.GetComponent<AudioSource>().PlayOneShot(soundEffect.sound);
@@ -525,6 +539,7 @@ public class ControlsScript : MonoBehaviour {
 				}
 			}
 
+            // 播放摄像机的移动
 			foreach (CameraMovement cameraMovement in currentMove.cameraMovements){
 				if (currentMove.currentFrame >= cameraMovement.castingFrame){
 					cameraMovement.time += Time.deltaTime;
@@ -548,6 +563,7 @@ public class ControlsScript : MonoBehaviour {
 				}
 			}
 			
+            // 隐藏动作无敌部分的hitbox
 			if (currentMove.invincibleBodyParts.Length > 0) {
 				foreach (InvincibleBodyParts invBodyPart in currentMove.invincibleBodyParts){
 					if (currentMove.currentFrame >= invBodyPart.activeFramesBegin &&
@@ -567,7 +583,7 @@ public class ControlsScript : MonoBehaviour {
 					}
 				}
 			}
-			
+			// 防御区域判断
 			if (currentMove.blockableArea.bodyPart != BodyPart.none){
 				if (currentMove.currentFrame >= currentMove.blockableArea.activeFramesBegin &&
 					currentMove.currentFrame < currentMove.blockableArea.activeFramesEnds) {
@@ -578,9 +594,11 @@ public class ControlsScript : MonoBehaviour {
 					opControlsScript.CheckBlocking(false);
 				}
 			}
-			
-			foreach (Hit hit in currentMove.hits){
+
+            // 动作的多段攻击？在动作文件中activeframe 中可以设置 hit数组
+            foreach (Hit hit in currentMove.hits){
 				if (comboHits >= UFE.config.comboOptions.maxCombo) continue;
+                // 取消技，当播放到可以取消的帧的时候执行下个动作
 				if ((hit.hasHit && currentMove.frameLink.onlyOnHit) || !currentMove.frameLink.onlyOnHit){
 					if (currentMove.currentFrame >= currentMove.frameLink.activeFramesBegins) currentMove.cancelable = true;
 					if (currentMove.currentFrame >= currentMove.frameLink.activeFramesEnds) currentMove.cancelable = false;
@@ -591,20 +609,23 @@ public class ControlsScript : MonoBehaviour {
 					currentMove.currentFrame < hit.activeFramesEnds) {
 					if (hit.hurtBoxes.Length > 0){
 						myHitBoxesScript.activeHurtBoxes = hit.hurtBoxes;
-						
+						// hurtbox判断，攻击中敌方
 						Vector3 collisionVector_hit = opHitBoxesScript.testCollision(myHitBoxesScript.activeHurtBoxes);
 						if (collisionVector_hit != Vector3.zero) { // HURTBOX TEST
+                            // 对手成功防御
 							if (!opControlsScript.stunned && opControlsScript.currentMove == null && opControlsScript.isBlocking && opControlsScript.TestBlockStances(hit.hitType)){
 								opControlsScript.GetHitBlocking(hit, currentMove.totalFrames - currentMove.currentFrame, collisionVector_hit);
 								AddGauge(currentMove.gaugeGainOnBlock);
 								opControlsScript.AddGauge(currentMove.opGaugeGainOnBlock);
+                            // 对手成功避开
 							}else if (opControlsScript.potentialParry > 0 && opControlsScript.currentMove == null && opControlsScript.TestParryStances(hit.hitType)){
 								opControlsScript.GetHitParry(hit, collisionVector_hit);
 								opControlsScript.AddGauge(currentMove.opGaugeGainOnParry);
 							}else{
+                                // 成功攻击到对手
 								opControlsScript.GetHit(hit, currentMove.totalFrames - currentMove.currentFrame, collisionVector_hit);
 								AddGauge(currentMove.gaugeGainOnHit);
-								
+							    // 攻击拉近？
 								if (hit.pullSelfIn.enemyBodyPart != BodyPart.none && hit.pullSelfIn.characterBodyPart != BodyPart.none){
 									Vector3 newPos = opHitBoxesScript.getPosition(hit.pullSelfIn.enemyBodyPart);
 									if (newPos != Vector3.zero){
@@ -613,9 +634,12 @@ public class ControlsScript : MonoBehaviour {
 									}
 								}
 							}
+
+                            // 施加力
 							myPhysicsScript.resetForces(hit.resetPreviousHorizontal, hit.resetPreviousVertical);
 							myPhysicsScript.addForce(hit.appliedForce, mirror);
 							
+                            // 碰到屏幕两边施加力
 							if ((opponent.transform.position.x >= UFE.config.selectedStage.rightBoundary - 2 ||
 								opponent.transform.position.x <= UFE.config.selectedStage.leftBoundary + 2) &&
 								myPhysicsScript.isGrounded()){
@@ -624,7 +648,7 @@ public class ControlsScript : MonoBehaviour {
 									new Vector2(hit.pushForce.x + (opPhysicsScript.airTime * opInfo.physics.friction), 0), 
 									mirror * -1);
 							}
-							
+							// 场景抖动效果
 							HitPause();
 							Invoke("HitUnpause",GetFreezingTime(hit.hitStrengh));
 							if (!hit.continuousHit) hit.hasHit = true;
@@ -632,13 +656,13 @@ public class ControlsScript : MonoBehaviour {
 					}
 				}
 			}
-			
+			// 当前动作的帧播完
 			if(currentMove.currentFrame >= currentMove.totalFrames) {
 				if (currentMove == myMoveSetScript.getIntro()) introPlayed = true;
 				KillCurrentMove();
 			}
 		}
-
+        // 被对方攻击时角色震动
 		if (myHitBoxesScript.isHit){
 			if (myPhysicsScript.freeze) {
 				if (shakeDensity > 0) shakeDensity -= Time.deltaTime; 
@@ -651,15 +675,17 @@ public class ControlsScript : MonoBehaviour {
 				shakeDensity = 0;
 			}
 		}
-		
+		// 避开攻击时间更新
 		if (potentialParry > 0){
 			potentialParry -= Time.deltaTime;
 			if (potentialParry <= 0) potentialParry = 0;
 		}
-		
+		// 击晕判断
 		if ((stunned || blockStunned) && stunTime > 0 && !myPhysicsScript.freeze){
+            // 动画减速
 			character.GetComponent<Animation>()[currentHitAnimation].speed -= hitStunDeceleration * Time.deltaTime;
-			if (UFE.config.comboOptions.neverAirRecover && !myPhysicsScript.isGrounded()){
+            // 空中覆盖时空中连击不减少眩晕时间
+            if (UFE.config.comboOptions.neverAirRecover && !myPhysicsScript.isGrounded()){
 				stunTime = 1;
 			}else{
 				stunTime -= Time.deltaTime;
@@ -669,14 +695,17 @@ public class ControlsScript : MonoBehaviour {
 				myPhysicsScript.debugger.text += "<color=#003300>animation speed: "+ character.animation[currentHitAnimation].speed +"</color>\n";
 				myPhysicsScript.debugger.text += "<color=#003300>stunTime: "+ stunTime +"</color>\n";
 			}*/
+            // 倒地爬起判断
 			if (!isDead && stunTime <= UFE.config.knockDownOptions.getUpTime){
 				if (currentState == PossibleStates.Down && myPhysicsScript.isGrounded()){
 					currentState = PossibleStates.Stand;
 					character.GetComponent<Animation>().Play("getUp");
 				}
 			}
+            // 眩晕时间结束
 			if (stunTime <= 0) ReleaseStun();
 		}
+        // 拉近时间结束，施加当前动作的力
 		if (pullInSpeed == 0) myPhysicsScript.applyForces(currentMove);
 	}
 	
@@ -887,7 +916,19 @@ public class ControlsScript : MonoBehaviour {
 		myPhysicsScript.addForce(new Vector3(hit.pushForce.x, 0, 0), opControlsScript.mirror);
 	}
 	
+    /// <summary>
+    /// 根据当前角色姿势判断要播放的动画
+    /// 根据攻击类型播放特定特效
+    /// 播放文字特效，音效
+    /// 扣血计算
+    /// 摄像机拉近效果
+    /// 空中的连击重力判定
+    /// </summary>
+    /// <param name="hit"></param>
+    /// <param name="remainingFrames"></param>
+    /// <param name="location"></param>
 	public void GetHit(Hit hit, int remainingFrames, Vector3 location){
+        // 根据角色状态获取需要播放的动画
 		// Get what animation should be played depending on the character's state
 		if (myPhysicsScript.isGrounded()) {
 			if (currentState == PossibleStates.Crouch){
@@ -901,6 +942,7 @@ public class ControlsScript : MonoBehaviour {
 			currentHitAnimation = "getHitAir";
 		}
 		
+        // 拉扯技能？
 		// Set position in case of pull enemy in
 		if (hit.pullEnemyIn.enemyBodyPart != BodyPart.none && hit.pullEnemyIn.characterBodyPart != BodyPart.none){
 			Vector3 newPos = myHitBoxesScript.getPosition(hit.pullEnemyIn.enemyBodyPart);
@@ -909,7 +951,7 @@ public class ControlsScript : MonoBehaviour {
 				pullInSpeed = hit.pullEnemyIn.speed;
 			}
 		}
-		
+		// 不同攻击类型，不同特效？
 		// Differenciate hit types
 		GameObject hitEffect = null;
 		float effectKillTime = 0;
@@ -935,7 +977,7 @@ public class ControlsScript : MonoBehaviour {
 			Destroy(pTemp, effectKillTime);
 		}
 
-
+        // 打击时文字特效
 		// Cast First Hit if true
 		if (!firstHit && !opControlsScript.firstHit){
 			opControlsScript.firstHit = true;
@@ -943,7 +985,7 @@ public class ControlsScript : MonoBehaviour {
 		}
 		UFE.FireHit(myHitBoxesScript.getStrokeHitBox(), opControlsScript.currentMove, opInfo);
 
-
+        //打击扣血计算
 		// Convert Percentage
 		if (hit.damageType == DamageType.Percentage) hit.damageOnHit = myInfo.lifePoints * (hit.damageOnHit/100);
 
@@ -990,6 +1032,7 @@ public class ControlsScript : MonoBehaviour {
 		comboHits ++;
 		if (isDead) stunTime = 999;
 
+        // 致眩晕时播放动画减速
 		// Set deceleration of hit stun animation so it can look more natural
 		hitStunDeceleration = character.GetComponent<Animation>()[currentHitAnimation].length/Mathf.Pow(stunTime,2);
 		
@@ -998,13 +1041,16 @@ public class ControlsScript : MonoBehaviour {
 		character.GetComponent<Animation>()[currentHitAnimation].speed = (character.GetComponent<Animation>()[currentHitAnimation].length/stunTime) * 1.5f;
 		character.GetComponent<Animation>().Play(currentHitAnimation);
 		
+        // 锁屏，拉近摄像机
 		// Freeze screen depending on how strong the hit was
 		HitPause();
 		Invoke("HitUnpause",GetFreezingTime(hit.hitStrengh));
 		
+        // hit state 1 -> 0
 		// Reset hit to allow for another hit while the character is still stunned
 		myHitBoxesScript.Invoke("resetHit",GetFreezingTime(hit.hitStrengh) * 1.2f);
 		
+        // 给动作添加力
 		// Add force to the move		
 		// Air juggle deterioration (the longer the combo, the harder it is to push the opponent higher)
 		float verticalPush = hit.pushForce.y;
@@ -1042,6 +1088,7 @@ public class ControlsScript : MonoBehaviour {
 
 	}
 
+    // 暂停动画和物理系统展示一个场景震动
 	// Pause animations and physics to create a sense of impact
 	void HitPause(){
 		Camera.main.transform.position += Vector3.forward/2;
