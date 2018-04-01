@@ -176,8 +176,12 @@ public class PhysicsScript : MonoBehaviour {
 			
 			if (!myControlsScript.stunned && move == null){
 				if (moveDirection < 0 && myControlsScript.mirror == -1 ||
-					moveDirection > 0 && myControlsScript.mirror == 1) 
-					myMoveSetScript.playBasicMove(myMoveSetScript.basicMoves.moveForward);
+					moveDirection > 0 && myControlsScript.mirror == 1)
+                {
+                    Debug.Log("myMoveSetScript.basicMoves.moveForward");
+                    myMoveSetScript.playBasicMove(myMoveSetScript.basicMoves.moveForward);
+                }
+					
 				
 				if (moveDirection < 0 && myControlsScript.mirror == 1||
 					moveDirection > 0 && myControlsScript.mirror == -1) 
@@ -227,7 +231,8 @@ public class PhysicsScript : MonoBehaviour {
 				}
 			}
 		}
-		if (horizontalForce == 0 && verticalForce == 0) moveDirection = 0;
+		if (horizontalForce == 0 && verticalForce == 0)
+            moveDirection = 0;
 		
 		if (UFE.normalizedCam) {
 			Vector3 cameraLeftBounds = Camera.main.ViewportToWorldPoint(new Vector3(0,0,-Camera.main.transform.position.z - 10));

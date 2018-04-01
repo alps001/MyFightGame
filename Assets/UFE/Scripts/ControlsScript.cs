@@ -222,25 +222,26 @@ public class ControlsScript : MonoBehaviour {
 		if (UFE.config.lockMovements) return;
         // 动作替换
 		foreach (InputReferences inputRef in inputReferences) {
+            // 当遍历上下方向键时，并玩家没有按下该键则为站立状态
 			if ((inputRef.engineRelatedButton == ButtonPress.Down
 				|| inputRef.engineRelatedButton == ButtonPress.Up)
 				&& Input.GetAxisRaw(inputRef.inputButtonName) == 0 
 				&& myPhysicsScript.isGrounded() && !myHitBoxesScript.isHit){
 				currentState = PossibleStates.Stand;
 			}
-
+            // 执行方向键动作
 			if (inputRef.inputType != InputType.Button && inputRef.heldDown > 0 && Input.GetAxisRaw(inputRef.inputButtonName) == 0) {
 				if (inputRef.heldDown >= myInfo.chargeTiming) 
 					storedMove = myMoveSetScript.getMove(new ButtonPress[]{inputRef.engineRelatedButton}, inputRef.heldDown, currentMove, true);
-				inputRef.heldDown = 0;
-				if ((currentMove == null || currentMove.cancelable) && storedMove != null) {
-					currentMove = storedMove;
-					storedMove = null;
-					return;
-				}else if (storedMove != null){
-					storedMoveTime = UFE.config.storedExecutionDelay;
-					return;
-				}
+				    inputRef.heldDown = 0;
+				    if ((currentMove == null || currentMove.cancelable) && storedMove != null) {
+					    currentMove = storedMove;
+					    storedMove = null;
+					    return;
+				    }else if (storedMove != null){
+					    storedMoveTime = UFE.config.storedExecutionDelay;
+					    return;
+				    }
 			}
 			
 			if (Input.GetButtonUp(inputRef.inputButtonName)) {
@@ -282,6 +283,7 @@ public class ControlsScript : MonoBehaviour {
 							if (currentMove == null) myPhysicsScript.move(mirror * -1, Input.GetAxisRaw(inputRef.inputButtonName));
 					}
 					// Check for potential parry
+                    // 检查潜在的回避
 					if (((inputRef.engineRelatedButton == ButtonPress.Back && UFE.config.blockOptions.parryType == ParryType.TapBack) ||
 						(inputRef.engineRelatedButton == ButtonPress.Foward && UFE.config.blockOptions.parryType == ParryType.TapForward)) &&
 						potentialParry == 0 && axisPressed && currentMove == null){
@@ -317,6 +319,7 @@ public class ControlsScript : MonoBehaviour {
 					storedMove = myMoveSetScript.getMove(new ButtonPress[]{inputRef.engineRelatedButton}, 0, currentMove, false);
 					if ((currentMove == null || currentMove.cancelable) && storedMove != null) {
 						currentMove = storedMove;
+                       
 						storedMove = null;
 						return;
 					}else if (storedMove != null){
@@ -705,6 +708,8 @@ public class ControlsScript : MonoBehaviour {
             // 眩晕时间结束
 			if (stunTime <= 0) ReleaseStun();
 		}
+        if(currentMove != null)
+        Debug.Log("applyForces(currentMove):"+currentMove.moveName);
         // 拉近时间结束，施加当前动作的力
 		if (pullInSpeed == 0) myPhysicsScript.applyForces(currentMove);
 	}

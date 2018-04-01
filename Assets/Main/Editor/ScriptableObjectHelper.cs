@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using UnityEditor;
 using System.IO;
-
+namespace MyFightGame { 
 public static class ScriptableObjectHelper {
 
     public static void CreateAsset<T>() where T : ScriptableObject
@@ -57,4 +57,5 @@ public static class ScriptableObjectHelper {
         }
 
     }
+}
 }
