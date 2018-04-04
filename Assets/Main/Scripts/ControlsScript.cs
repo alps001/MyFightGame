@@ -53,6 +53,23 @@ namespace MyFightGame {
         // Update is called once per frame
         void Update()
         {
+
+            // 存放动作时间减少
+            if (!myPhysicsScript.freeze && storedMoveTime > 0) storedMoveTime -= Time.deltaTime;
+            if (storedMoveTime < 0)
+            {
+                storedMoveTime = 0;
+                storedMove = null;
+            }
+            // 执行存放动作
+            if ((currentMove == null || currentMove.cancelable) && storedMove != null && !myPhysicsScript.freeze)
+            {
+                if (currentMove != null) KillCurrentMove();
+                //if (System.Array.IndexOf(storedMove.possibleStates, currentState) != -1) currentMove = storedMove;
+                storedMove = null;
+                return;
+            }
+
             foreach (AnimationState animState in character.GetComponent<Animation>())
             {
                 if (character.GetComponent<Animation>().IsPlaying(animState.name))
@@ -61,13 +78,20 @@ namespace MyFightGame {
                     Debug.Log("IsPlaying: " + animState.name);
                 }
             }
+
+            // 执行存放动作
+		if ((currentMove == null || currentMove.cancelable) && storedMove != null && !myPhysicsScript.freeze) {
+			if (currentMove != null) KillCurrentMove();
+			if (System.Array.IndexOf(storedMove.possibleStates, currentState) != -1) currentMove = storedMove;
+			storedMove = null;
+			return;
+		}
             // 执行默认idle动作
             if (!myPhysicsScript.freeze && myPhysicsScript.isGrounded() && isAxisRested() && !character.GetComponent<Animation>().IsPlaying("idle"))
             {
                 Debug.Log(character.GetComponent<Animation>().GetClipCount());
                 
                 bool playIdle = true;
-                Debug.Log("IsPlaying idle?:" + character.GetComponent<Animation>().IsPlaying("idle"));
                 foreach (AnimationState animState in character.GetComponent<Animation>())
                 {
                     if (animState.name != "idle" &&
@@ -78,12 +102,10 @@ namespace MyFightGame {
                         character.GetComponent<Animation>().IsPlaying(animState.name))
                     {
                         playIdle = false;
-                        Debug.Log("Play "+ animState.name);
                     }
                 }
                 if (playIdle)
                 {
-                    Debug.Log("Play idle");
                     myMoveSetScript.playBasicMove(myMoveSetScript.basicMoves.idle);
                     currentState = PossibleStates.Stand;
                     //if (GlobalScript.prefs.blockOptions.blockType == BlockType.AutoBlock) potentialBlock = true;
@@ -210,16 +232,16 @@ namespace MyFightGame {
                     debugger.text += "time: "+ character.animation[currentMove.name].time + "\n";
                 }*/
                 // 动作还没开始执行时，赋值动画参数
-                //if (currentMove.currentFrame == 0)
-                //{
-                //    if (character.GetComponent<Animation>()[currentMove.name] == null) Debug.LogError("Animation for move '" + currentMove.moveName + "' not found!");
-                //    character.GetComponent<Animation>()[currentMove.name].time = 0;
-                //    character.GetComponent<Animation>().CrossFade(currentMove.name, currentMove.interpolationSpeed);
-                //    character.GetComponent<Animation>()[currentMove.name].speed = currentMove.animationSpeed;
-                //}
+                if (currentMove.currentFrame == 0)
+                {
+                    if (character.GetComponent<Animation>()[currentMove.name] == null) Debug.LogError("Animation for move '" + currentMove.moveName + "' not found!");
+                    character.GetComponent<Animation>()[currentMove.name].time = 0;
+                    character.GetComponent<Animation>().CrossFade(currentMove.name, currentMove.interpolationSpeed);
+                    character.GetComponent<Animation>()[currentMove.name].speed = currentMove.animationSpeed;
+                }
 
                 // ANIMATION FRAME DATA
-                //if (!animationPaused) currentMove.currentFrame++;
+                if (!animationPaused) currentMove.currentFrame++;
                 //if (currentMove.currentFrame == 1) AddGauge(currentMove.gaugeGainOnMiss);
                 // 根据配置的动画类型 设置当前动画的时间点
                 //if (UFE.config.animationFlow == AnimationFlow.MorePrecision)
@@ -435,14 +457,14 @@ namespace MyFightGame {
                 //    }
                 //}
                 // 当前动作的帧播完
-                //if (currentMove.currentFrame >= currentMove.totalFrames)
-                //{
+                if (currentMove.currentFrame >= currentMove.totalFrames)
+                {
                     //if (currentMove == myMoveSetScript.getIntro()) introPlayed = true;
-                    //KillCurrentMove();
-                //}
+                    KillCurrentMove();
+                }
             }
 
-
+            myPhysicsScript.applyForces(currentMove);
         }
 
         public float GetAnimationTime(int animFrame)

@@ -233,15 +233,15 @@ public class ControlsScript : MonoBehaviour {
 			if (inputRef.inputType != InputType.Button && inputRef.heldDown > 0 && Input.GetAxisRaw(inputRef.inputButtonName) == 0) {
 				if (inputRef.heldDown >= myInfo.chargeTiming) 
 					storedMove = myMoveSetScript.getMove(new ButtonPress[]{inputRef.engineRelatedButton}, inputRef.heldDown, currentMove, true);
-				    inputRef.heldDown = 0;
-				    if ((currentMove == null || currentMove.cancelable) && storedMove != null) {
-					    currentMove = storedMove;
-					    storedMove = null;
-					    return;
-				    }else if (storedMove != null){
-					    storedMoveTime = UFE.config.storedExecutionDelay;
-					    return;
-				    }
+				inputRef.heldDown = 0;
+				if ((currentMove == null || currentMove.cancelable) && storedMove != null) {
+					currentMove = storedMove;
+					storedMove = null;
+					return;
+				}else if (storedMove != null){
+					storedMoveTime = UFE.config.storedExecutionDelay;
+					return;
+				}
 			}
 			
 			if (Input.GetButtonUp(inputRef.inputButtonName)) {
