@@ -8,10 +8,11 @@ namespace MyFightGame
     [System.Serializable]
     public class PhysicsData
     {
-        public float moveForwardSpeed = 4f; // How fast this character can move forward
+        public float walkSpeed = 4f; // How fast this character can move forward
         public float moveBackSpeed = 4f; // How fast this character can move backwards
         public float moveUpSpeed = 4f;
         public float moveDownSpeed = 4f;
+        public float runSpeed = 8f;
         public bool highMovingFriction = true; // When releasing the horizontal controls character will stop imediatelly
         public float friction = 30f; // Friction used in case of highMovingFriction false. Also used when player is pushed
         public float jumpForce = 20f; // How high this character will jumps

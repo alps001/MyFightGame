@@ -315,19 +315,23 @@ public class ControlsScript : MonoBehaviour {
 						}
 					}
 				}
-				if (axisPressed){
-					storedMove = myMoveSetScript.getMove(new ButtonPress[]{inputRef.engineRelatedButton}, 0, currentMove, false);
-					if ((currentMove == null || currentMove.cancelable) && storedMove != null) {
-						currentMove = storedMove;
-                       
-						storedMove = null;
-						return;
-					}else if (storedMove != null){
-						storedMoveTime = UFE.config.storedExecutionDelay;
-						return;
-					}
-				}
-			}
+                if (axisPressed)
+                {
+                    storedMove = myMoveSetScript.getMove(new ButtonPress[] { inputRef.engineRelatedButton }, 0, currentMove, false);
+                    if ((currentMove == null || currentMove.cancelable) && storedMove != null)
+                    {
+                        currentMove = storedMove;
+
+                        storedMove = null;
+                        return;
+                    }
+                    else if (storedMove != null)
+                    {
+                        storedMoveTime = UFE.config.storedExecutionDelay;
+                        return;
+                    }
+                }
+            }
 			
             // °´Å¥ÅÐ¶Ï
 			if (inputRef.inputType == InputType.Button && !UFE.config.lockInputs){

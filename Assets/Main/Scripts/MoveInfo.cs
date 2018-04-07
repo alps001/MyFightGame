@@ -24,8 +24,10 @@ namespace MyFightGame{
     }
 
     public enum InputType {
-	    HorizontalAxis,
-	    VerticalAxis,
+        Right,
+	    Left,
+        Up,
+        Down,
 	    Button
     }
 

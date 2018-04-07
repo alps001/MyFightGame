@@ -11,7 +11,7 @@ namespace MyFightGame
         [HideInInspector]
         public float airTime = 0;
 
-        private float moveDirection = 0;
+        private float faceDirection = 0; // ÈËÎï³¯Ïò
         //private float verticalForce = 0;
         private float xForce = 0;
         private float yForce = 0;
@@ -22,6 +22,8 @@ namespace MyFightGame
         private int currentAirJumps;
         private int bounceTimes;
         private bool isBouncing;
+        private float walkSpeed;
+        private float runSpeed;
         private float appliedGravity;
 
         private ControlsScript myControlsScript;
@@ -41,14 +43,47 @@ namespace MyFightGame
             myHitBoxesScript = character.GetComponent<HitBoxesScript>();
             myMoveSetScript = character.GetComponent<MoveSetScript>();
             appliedGravity = myControlsScript.myInfo.physics.weight * UFE.config.gravity;
+
+            walkSpeed = myControlsScript.myInfo.physics.walkSpeed;
+            runSpeed = myControlsScript.myInfo.physics.runSpeed;
+        }
+
+        public void SetMoveFoce(Vector2 direction) {
+            xForce = direction.x;
+            zForce = direction.y;
+        }
+
+        public void move(Vector2 direction)
+        {
+            if (!isGrounded()) return;
+            if (direction.x != 0) {
+                faceDirection = direction.x;
+                xForce = myControlsScript.myInfo.physics.walkSpeed * direction.x;
+            }
+            if (direction.y != 0) {
+                zForce = myControlsScript.myInfo.physics.moveUpSpeed * direction.y;
+            }
+        }
+
+        public void AddXForce(float force)
+        {
+            if (isGrounded()) {
+                faceDirection = force;
+            }
+            xForce = force;
+        }
+        public void AddZForce(float force)
+        {
+            //if (!isGrounded()) return;
+            zForce = force;
         }
 
         public void xMove(float direction)
         {
             if (!isGrounded()) return;
-            moveDirection = direction;
+            faceDirection = direction;
 
-            xForce = myControlsScript.myInfo.physics.moveForwardSpeed * direction;
+            xForce = myControlsScript.myInfo.physics.walkSpeed * direction;
         }
 
         public void zMove(float direction)
@@ -63,7 +98,7 @@ namespace MyFightGame
         {
             if (currentAirJumps >= myControlsScript.myInfo.physics.multiJumps) return;
             currentAirJumps++;
-            xForce = myControlsScript.myInfo.physics.jumpDistance * moveDirection;
+            xForce = myControlsScript.myInfo.physics.jumpDistance * faceDirection;
             yForce = myControlsScript.myInfo.physics.jumpForce;
             setVerticalData(myControlsScript.myInfo.physics.jumpForce);
         }
@@ -104,22 +139,24 @@ namespace MyFightGame
                 transform.Translate(xForce * Time.deltaTime, 0, 0);
             if (zForce != 0)
                 transform.Translate(0, 0, zForce * Time.deltaTime);
+            if (faceDirection > 0)
+                character.transform.localScale = new Vector3(1, 1, 1f);
+            else if (faceDirection < 0) 
+                character.transform.localScale = new Vector3(1, 1, -1f);
+            
             if (!myControlsScript.stunned && move == null)
             {
-                if (moveDirection > 0)
-                {
-                    Debug.Log("==myMoveSetScript.basicMoves.moveForward");
-                    character.transform.localScale = new Vector3(1, 1, 1f);
-                }
-
-                if (moveDirection < 0) {
-                    character.transform.localScale =new Vector3(1, 1, -1f);
-                }
-                if(xForce != 0 || zForce != 0)
+                if(xForce == walkSpeed || xForce == -walkSpeed || zForce == walkSpeed || zForce == -walkSpeed)
+                { 
                     myMoveSetScript.playBasicMove(myMoveSetScript.basicMoves.moveForward);
+                }
+                else if(xForce == runSpeed|| xForce == -runSpeed || zForce == runSpeed || zForce == -runSpeed)
+                {
+                    myMoveSetScript.playBasicMove(myMoveSetScript.basicMoves.run);
+                }
             }
 
-            moveDirection = 0;
+            faceDirection = 0;
         }
 
         public bool isGrounded()

@@ -2,7 +2,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace MyFightGame {
+namespace MyFightGame
+{
 
     [System.Serializable]
     public class InputReferences
@@ -14,6 +15,16 @@ namespace MyFightGame {
         [HideInInspector]
         public float heldDown;
     }
+
+    public enum PreRunDirection
+    {
+        Left,
+        Right,
+        Up,
+        Down,
+        None
+    };
+
     public class ControlsScript : MonoBehaviour
     {
         public GameObject character;
@@ -22,6 +33,14 @@ namespace MyFightGame {
         public PossibleStates currentState;
         public MoveInfo currentMove;
         public MoveInfo storedMove;
+
+        public Vector2 moveDirection;
+        public PreRunDirection readyToRun = PreRunDirection.None;
+        public bool isRun;
+        public float leftHeldTime;
+        public float rightHeldTime;
+        public float upHeldTime;
+        public float downHeldTime;
 
         public bool stunned;
         public float stunTime;
@@ -80,23 +99,25 @@ namespace MyFightGame {
             }
 
             // 执行存放动作
-		if ((currentMove == null || currentMove.cancelable) && storedMove != null && !myPhysicsScript.freeze) {
-			if (currentMove != null) KillCurrentMove();
-			if (System.Array.IndexOf(storedMove.possibleStates, currentState) != -1) currentMove = storedMove;
-			storedMove = null;
-			return;
-		}
+            if ((currentMove == null || currentMove.cancelable) && storedMove != null && !myPhysicsScript.freeze)
+            {
+                if (currentMove != null) KillCurrentMove();
+                if (System.Array.IndexOf(storedMove.possibleStates, currentState) != -1) currentMove = storedMove;
+                storedMove = null;
+                return;
+            }
             // 执行默认idle动作
             if (!myPhysicsScript.freeze && myPhysicsScript.isGrounded() && isAxisRested() && !character.GetComponent<Animation>().IsPlaying("idle"))
             {
                 Debug.Log(character.GetComponent<Animation>().GetClipCount());
-                
+
                 bool playIdle = true;
                 foreach (AnimationState animState in character.GetComponent<Animation>())
                 {
                     if (animState.name != "idle" &&
                         animState.name != "moveForward" &&
                         animState.name != "moveBack" &&
+                        animState.name != "run" &&
                         animState.name != "crouching" &&
                         animState.name != "blockingLowPose" &&
                         character.GetComponent<Animation>().IsPlaying(animState.name))
@@ -112,10 +133,60 @@ namespace MyFightGame {
                 }
             }
 
+            // 松开方向键设置跑动作的标识
+
+            if (moveDirection.x > 0)
+            {
+                readyToRun = PreRunDirection.Right;
+            }
+            else if (moveDirection.x < 0)
+            {
+                readyToRun = PreRunDirection.Left;
+            }
+            else
+            {
+                readyToRun = PreRunDirection.None;
+            }
+            bool hasAxisKeyDown = false;
             foreach (InputReferences inputRef in inputReferences)
             {
-                // 执行方向键动作
+                // 清空方向键 按下时间heldDown
                 if (inputRef.inputType != InputType.Button && inputRef.heldDown > 0 && Input.GetAxisRaw(inputRef.inputButtonName) == 0)
+                {
+                    if (inputRef.heldDown >= myInfo.chargeTiming)
+                        storedMove = myMoveSetScript.getMove(new ButtonPress[] { inputRef.engineRelatedButton }, inputRef.heldDown, currentMove, true);
+                    inputRef.heldDown = 0;
+                    if (inputRef.inputType == InputType.Left)
+                    {
+                        leftHeldTime = 0;
+                    }
+                    else if (inputRef.inputType == InputType.Right)
+                    {
+                        rightHeldTime = 0;
+                    }
+                    else if (inputRef.inputType == InputType.Up)
+                    {
+                        upHeldTime = 0;
+                    }
+                    else if (inputRef.inputType == InputType.Down)
+                    {
+                        downHeldTime = 0;
+                    }
+
+                    if ((currentMove == null || currentMove.cancelable) && storedMove != null)
+                    {
+                        currentMove = storedMove;
+                        storedMove = null;
+                        return;
+                    }
+                    else if (storedMove != null)
+                    {
+                        storedMoveTime = UFE.config.storedExecutionDelay;
+                        return;
+                    }
+                }
+
+                if (Input.GetButtonUp(inputRef.inputButtonName))
                 {
                     if (inputRef.heldDown >= myInfo.chargeTiming)
                         storedMove = myMoveSetScript.getMove(new ButtonPress[] { inputRef.engineRelatedButton }, inputRef.heldDown, currentMove, true);
@@ -132,45 +203,45 @@ namespace MyFightGame {
                         return;
                     }
                 }
-
+                
+                // 方向键按下
                 if (inputRef.inputType != InputType.Button && Input.GetAxisRaw(inputRef.inputButtonName) != 0)
                 {
+
+                    hasAxisKeyDown = true;
                     bool axisPressed = false;
-                    if (inputRef.inputType == InputType.HorizontalAxis)
-                    {
-                        float direction = Input.GetAxisRaw(inputRef.inputButtonName);
-                        if (direction > 0)
-                        {
-                            inputRef.engineRelatedButton = ButtonPress.Right;
-                        }
-                        else
-                        {
-                            inputRef.engineRelatedButton = ButtonPress.Left;
-                        }
+                    moveDirection = Vector2.zero;
 
-                        if (inputRef.heldDown == 0) axisPressed = true;
-                        inputRef.heldDown += Time.deltaTime;
-                        myPhysicsScript.xMove(direction);
-                        inputRef.heldDown = 0;
+                    
+                    if (inputRef.inputType == InputType.Left)
+                    {
+                        inputRef.engineRelatedButton = ButtonPress.Left;
+                        moveDirection.x = -1;
+                        leftHeldTime = inputRef.heldDown;
                     }
-                    else
+                    else if (inputRef.inputType == InputType.Right)
                     {
-                        float direction = Input.GetAxisRaw(inputRef.inputButtonName);
-                        if (direction > 0)
-                        {
-                            inputRef.engineRelatedButton = ButtonPress.Up;
-                        }
-                        else
-                        {
-                            inputRef.engineRelatedButton = ButtonPress.Down;
-                        }
-
-                        if (inputRef.heldDown == 0) axisPressed = true;
-                        inputRef.heldDown += Time.deltaTime;
-                        myPhysicsScript.zMove(direction);
-                        inputRef.heldDown = 0;
+                        inputRef.engineRelatedButton = ButtonPress.Right;
+                        moveDirection.x = 1;
+                        rightHeldTime = inputRef.heldDown;
+                    }
+                    else if (inputRef.inputType == InputType.Up)
+                    {
+                        inputRef.engineRelatedButton = ButtonPress.Up;
+                        moveDirection.y = 1;
+                        upHeldTime = inputRef.heldDown;
+                    }
+                    else if (inputRef.inputType == InputType.Down)
+                    {
+                        inputRef.engineRelatedButton = ButtonPress.Down;
+                        moveDirection.y = -1;
+                        downHeldTime = inputRef.heldDown;
                     }
 
+                    if (inputRef.heldDown == 0) axisPressed = true;
+                    inputRef.heldDown += Time.deltaTime;
+
+                    // 第一次（或执行动作之后）按下方向键
                     if (axisPressed)
                     {
                         storedMove = myMoveSetScript.getMove(new ButtonPress[] { inputRef.engineRelatedButton }, 0, currentMove, false);
@@ -185,11 +256,58 @@ namespace MyFightGame {
                             storedMoveTime = UFE.config.storedExecutionDelay;
                             return;
                         }
+                        else {
+                            if (readyToRun != PreRunDirection.None)
+                            {
+                                switch (readyToRun)
+                                {
+                                    case PreRunDirection.Left:
+                                        if (moveDirection.x < 0) isRun = true;
+                                        break;
+                                    case PreRunDirection.Right:
+                                        if (moveDirection.x > 0) isRun = true;
+                                        break;
+                                }
+
+                            }
+                        }
                     }
                 }
             }
-            myPhysicsScript.applyForces(currentMove);
-            myPhysicsScript.resetForces(true, true);
+
+            float force = isRun ? myInfo.physics.runSpeed : myInfo.physics.walkSpeed;
+            if (leftHeldTime != 0 && rightHeldTime != 0)
+            {
+                float dir = leftHeldTime < rightHeldTime ? -1 : 1;
+                myPhysicsScript.AddXForce(force * dir);
+            }
+            else if (leftHeldTime != 0 && rightHeldTime == 0)
+            {
+                myPhysicsScript.AddXForce(-force);
+            }
+            else if (leftHeldTime == 0 && rightHeldTime != 0)
+            {
+                myPhysicsScript.AddXForce(force);
+            }
+
+            if (downHeldTime != 0 && upHeldTime != 0)
+            {
+                float dir = downHeldTime < upHeldTime ? -1 : 1;
+                myPhysicsScript.AddZForce(force * dir);
+            }
+            else if (downHeldTime != 0 && upHeldTime == 0)
+            {
+                myPhysicsScript.AddZForce(-force);
+            }
+            else if (downHeldTime == 0 && upHeldTime != 0)
+            {
+                myPhysicsScript.AddZForce(force);
+            }
+
+            if (!hasAxisKeyDown) {
+                isRun = false;
+            }
+
         }
         private bool isAxisRested()
         {
@@ -200,22 +318,7 @@ namespace MyFightGame {
             }
             return true;
         }
-        // Imediately cancels any move being executed
-        public void KillCurrentMove()
-        {
-            if (currentMove == null) return;
-
-            currentMove.currentFrame = 0;
-            //myHitBoxesScript.activeHurtBoxes = null;
-            //myHitBoxesScript.blockableArea = null;
-            //myHitBoxesScript.showHitBoxes();
-            //opControlsScript.CheckBlocking(false);
-            character.GetComponent<Animation>()[currentMove.name].speed = currentMove.animationSpeed;
-
-            currentMove = null;
-            //ReleaseCam();
-
-        }
+        
 
         void FixedUpdate()
         {
@@ -231,6 +334,7 @@ namespace MyFightGame {
                     debugger.text += "normalizedTime: "+ character.animation[currentMove.name].normalizedTime + "\n";
                     debugger.text += "time: "+ character.animation[currentMove.name].time + "\n";
                 }*/
+
                 // 动作还没开始执行时，赋值动画参数
                 if (currentMove.currentFrame == 0)
                 {
@@ -462,9 +566,28 @@ namespace MyFightGame {
                     //if (currentMove == myMoveSetScript.getIntro()) introPlayed = true;
                     KillCurrentMove();
                 }
+                
             }
-
             myPhysicsScript.applyForces(currentMove);
+
+            myPhysicsScript.resetForces(true, true);
+        }
+
+        // Imediately cancels any move being executed
+        public void KillCurrentMove()
+        {
+            if (currentMove == null) return;
+
+            currentMove.currentFrame = 0;
+            //myHitBoxesScript.activeHurtBoxes = null;
+            //myHitBoxesScript.blockableArea = null;
+            //myHitBoxesScript.showHitBoxes();
+            //opControlsScript.CheckBlocking(false);
+            character.GetComponent<Animation>()[currentMove.name].speed = currentMove.animationSpeed;
+
+            currentMove = null;
+            //ReleaseCam();
+
         }
 
         public float GetAnimationTime(int animFrame)
@@ -480,5 +603,5 @@ namespace MyFightGame {
             }
         }
     }
-        
+
 }
