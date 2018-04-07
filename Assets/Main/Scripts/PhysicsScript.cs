@@ -170,7 +170,7 @@ namespace MyFightGame
                     {
                         myControlsScript.stunTime = UFE.config.knockDownOptions.knockedOutTime + UFE.config.knockDownOptions.getUpTime;
                         airAnimation = myMoveSetScript.basicMoves.fallDown;
-                        myControlsScript.currentState = PossibleStates.Down;
+                        myControlsScript.currentState = PossibleStates.FallDown;
                         if (!UFE.config.knockDownOptions.knockedOutHitBoxes) myHitBoxesScript.hideHitBoxes();
                     }
                     else
@@ -181,7 +181,10 @@ namespace MyFightGame
                             airAnimation = myMoveSetScript.basicMoves.landing;
                             myControlsScript.KillCurrentMove();
                         }
-                        myControlsScript.currentState = PossibleStates.Stand;
+                        if (myControlsScript.isRun) 
+                            myControlsScript.currentState = PossibleStates.Run;
+                        else
+                            myControlsScript.currentState = PossibleStates.Stand;
                     }
                     isBouncing = false;
                     bounceTimes = 0;
@@ -206,7 +209,7 @@ namespace MyFightGame
             else if (yForce > 0 || !isGrounded())
             {
                 if (move != null && myControlsScript.currentState == PossibleStates.Stand)
-                    myControlsScript.currentState = PossibleStates.StraightJump;
+                    myControlsScript.currentState = PossibleStates.Jump;
                 if (move == null && yForce / verticalTotalForce > 0 && yForce / verticalTotalForce <= 1)
                 {
                     if (isBouncing) return;
@@ -215,15 +218,15 @@ namespace MyFightGame
 
                     if (xForce == 0)
                     {
-                        myControlsScript.currentState = PossibleStates.StraightJump;
+                        myControlsScript.currentState = PossibleStates.Jump;
                     }
                     else
                     {
                         if (xForce > 0)
-                            myControlsScript.currentState = PossibleStates.ForwardJump;
+                            myControlsScript.currentState = PossibleStates.Jump;
 
                         if (xForce < 0)
-                            myControlsScript.currentState = PossibleStates.BackJump;
+                            myControlsScript.currentState = PossibleStates.Jump;
                     }
 
                     if (!character.GetComponent<Animation>().IsPlaying(airAnimation.name))

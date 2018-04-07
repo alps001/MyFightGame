@@ -9,7 +9,7 @@ namespace MyFightGame{
         Left,
         Up,
         Down,
-        Fist,// 拳
+        Punch,// 拳
         Kick,// 踢
         Jump,// 跳
     }
@@ -24,11 +24,10 @@ namespace MyFightGame{
 
     public enum PossibleStates {
 	    Stand,
-	    Crouch,
-	    StraightJump,
-	    ForwardJump,
-	    BackJump,
-	    Down
+        Run,
+	    Jump,
+	    Block,
+	    FallDown
     }
     // 战斗姿态，有的角色使用特定技能后动作完全改变
     public enum CombatStances {

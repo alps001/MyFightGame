@@ -82,6 +82,7 @@
     <Compile Include="Assets\Main\Scripts\ControlsScript.cs" />
     <Compile Include="Assets\Main\Scripts\GUIScript.cs" />
     <Compile Include="Assets\Main\Scripts\GlobalInfo.cs" />
+    <Compile Include="Assets\Main\Scripts\HitBoxesScript.cs" />
     <Compile Include="Assets\Main\Scripts\InputConfig.cs" />
     <Compile Include="Assets\Main\Scripts\MoveInfo.cs" />
     <Compile Include="Assets\Main\Scripts\MoveSetScript.cs" />

@@ -301,34 +301,8 @@ namespace MyFightGame
                 }
             }// END 按键列表循环
 
-            float force = isRun ? myInfo.physics.runSpeed : myInfo.physics.walkSpeed;
-            if (leftHeldTime != 0 && rightHeldTime != 0)
-            {
-                float dir = leftHeldTime < rightHeldTime ? -1 : 1;
-                myPhysicsScript.AddXForce(force * dir);
-            }
-            else if (leftHeldTime != 0 && rightHeldTime == 0)
-            {
-                myPhysicsScript.AddXForce(-force);
-            }
-            else if (leftHeldTime == 0 && rightHeldTime != 0)
-            {
-                myPhysicsScript.AddXForce(force);
-            }
 
-            if (downHeldTime != 0 && upHeldTime != 0)
-            {
-                float dir = downHeldTime < upHeldTime ? -1 : 1;
-                myPhysicsScript.AddZForce(force * dir);
-            }
-            else if (downHeldTime != 0 && upHeldTime == 0)
-            {
-                myPhysicsScript.AddZForce(-force);
-            }
-            else if (downHeldTime == 0 && upHeldTime != 0)
-            {
-                myPhysicsScript.AddZForce(force);
-            }
+            SetMovementForce();
 
             if (!hasAxisKeyDown) {
                 //readyToRun = PreRunDirection.None;
@@ -336,6 +310,8 @@ namespace MyFightGame
             }
 
         }
+
+        
         private bool isAxisRested()
         {
             foreach (InputReferences inputRef in inputReferences)
@@ -345,13 +321,49 @@ namespace MyFightGame
             }
             return true;
         }
-        
+
+        private void SetMovementForce()
+        {
+            if ((currentMove != null && currentState == PossibleStates.Jump) ||
+                currentMove == null) {
+                float force = isRun ? myInfo.physics.runSpeed : myInfo.physics.walkSpeed;
+                if (leftHeldTime != 0 && rightHeldTime != 0)
+                {
+                    float dir = leftHeldTime < rightHeldTime ? -1 : 1;
+                    myPhysicsScript.AddXForce(force * dir);
+                }
+                else if (leftHeldTime != 0 && rightHeldTime == 0)
+                {
+                    myPhysicsScript.AddXForce(-force);
+                }
+                else if (leftHeldTime == 0 && rightHeldTime != 0)
+                {
+                    myPhysicsScript.AddXForce(force);
+                }
+
+                if (downHeldTime != 0 && upHeldTime != 0)
+                {
+                    float dir = downHeldTime < upHeldTime ? -1 : 1;
+                    myPhysicsScript.AddZForce(force * dir);
+                }
+                else if (downHeldTime != 0 && upHeldTime == 0)
+                {
+                    myPhysicsScript.AddZForce(-force);
+                }
+                else if (downHeldTime == 0 && upHeldTime != 0)
+                {
+                    myPhysicsScript.AddZForce(force);
+                }
+            }
+            
+        }
 
         void FixedUpdate()
         {
+            
             if (currentMove != null)
             {
-
+                
                 /*debugger.text = "";
                 if (storedMove != null) debugger.text += storedMove.name + "\n";
                 debugger.text += currentMove.name +": "+ character.animation.IsPlaying(currentMove.name) + "\n";

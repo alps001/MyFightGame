@@ -334,6 +334,7 @@ namespace MyFightGame
             {
                 if ((buttonPress[0] == ButtonPress.Left && lastButtonPresses[lastButtonPresses.Count - 1] == buttonPress[0])||
                     (buttonPress[0] == ButtonPress.Right && lastButtonPresses[lastButtonPresses.Count - 1] == buttonPress[0])) {
+                    controlsScript.currentState = PossibleStates.Run;
                     controlsScript.isRun = true;
                 }
                 foreach (MoveInfo move in moves)
@@ -414,9 +415,7 @@ namespace MyFightGame
                 return newMove;
             }
 
-            if (controlsScript.currentState == PossibleStates.StraightJump ||
-                controlsScript.currentState == PossibleStates.ForwardJump ||
-                controlsScript.currentState == PossibleStates.BackJump)
+            if (controlsScript.currentState == PossibleStates.Jump)
             {
                 if (totalAirMoves >= controlsScript.myInfo.possibleAirMoves) return null;
                 totalAirMoves++;

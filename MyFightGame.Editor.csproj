@@ -126,6 +126,7 @@
     <Compile Include="Assets\Main\Editor\CharacterEditorWindow.cs" />
     <Compile Include="Assets\Main\Editor\GlobalEditorWindow.cs" />
     <Compile Include="Assets\Main\Editor\InputEditorWindow.cs" />
+    <Compile Include="Assets\Main\Editor\MoveEditor.cs" />
     <Compile Include="Assets\Main\Editor\MoveEditorWindow.cs" />
     <Compile Include="Assets\Main\Editor\ScriptableObjectHelper.cs" />
     <Compile Include="Assets\UFE\Editor\CharacterAsset.cs" />
