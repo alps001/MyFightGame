@@ -13,9 +13,9 @@ namespace MyFightGame
 
         private float faceDirection = 0; // ÈËÎï³¯Ïò
         //private float verticalForce = 0;
-        private float xForce = 0;
-        private float yForce = 0;
-        private float zForce = 0;
+        public float xForce = 0;
+        public float yForce = 0;
+        public float zForce = 0;
         private float verticalTotalForce = 0;
         private int groundLayer;
         private int groundMask;
@@ -68,7 +68,7 @@ namespace MyFightGame
         public void AddXForce(float force)
         {
             if (isGrounded()) {
-                faceDirection = force;
+                faceDirection = force>0?1:-1;
             }
             xForce = force;
         }
@@ -98,15 +98,15 @@ namespace MyFightGame
         {
             if (currentAirJumps >= myControlsScript.myInfo.physics.multiJumps) return;
             currentAirJumps++;
-            xForce = myControlsScript.myInfo.physics.jumpDistance * faceDirection;
+            //xForce = myControlsScript.myInfo.physics.jumpForwardSpeed * faceDirection;
             yForce = myControlsScript.myInfo.physics.jumpForce;
             setVerticalData(myControlsScript.myInfo.physics.jumpForce);
         }
 
-        public void resetForces(bool resetX, bool resetY)
+        public void resetForces(bool resetX,bool resetZ)
         {
             if (resetX) xForce = 0;
-            if (resetY) zForce = 0;
+            if (resetZ) zForce = 0;
         }
 
         public void addForce(Vector2 push, int mirror)
@@ -143,29 +143,110 @@ namespace MyFightGame
                 character.transform.localScale = new Vector3(1, 1, 1f);
             else if (faceDirection < 0) 
                 character.transform.localScale = new Vector3(1, 1, -1f);
-            
-            if (!myControlsScript.stunned && move == null)
+
+            if (move == null || (move != null && !move.ignoreGravity))
             {
-                if(xForce == walkSpeed || xForce == -walkSpeed || zForce == walkSpeed || zForce == -walkSpeed)
-                { 
-                    myMoveSetScript.playBasicMove(myMoveSetScript.basicMoves.moveForward);
-                }
-                else if(xForce == runSpeed|| xForce == -runSpeed || zForce == runSpeed || zForce == -runSpeed)
+                if ((yForce < 0 && !isGrounded()) || yForce > 0)
                 {
-                    myMoveSetScript.playBasicMove(myMoveSetScript.basicMoves.run);
+                    yForce -= appliedGravity * Time.deltaTime;
+                    transform.Translate(faceDirection * myControlsScript.myInfo.physics.jumpForwardSpeed * Time.deltaTime, yForce * Time.deltaTime, 0);
+                }
+                else if (yForce < 0 && isGrounded())
+                {
+                    currentAirJumps = 0;
+                    yForce = 0;
                 }
             }
 
-            faceDirection = 0;
+            if (isGrounded())
+            {
+                if (verticalTotalForce != 0)
+                {
+                    verticalTotalForce = 0;
+                    airTime = 0;
+                    myMoveSetScript.totalAirMoves = 0;
+                    BasicMoveInfo airAnimation = null;
+                    if (myControlsScript.stunned)
+                    {
+                        myControlsScript.stunTime = UFE.config.knockDownOptions.knockedOutTime + UFE.config.knockDownOptions.getUpTime;
+                        airAnimation = myMoveSetScript.basicMoves.fallDown;
+                        myControlsScript.currentState = PossibleStates.Down;
+                        if (!UFE.config.knockDownOptions.knockedOutHitBoxes) myHitBoxesScript.hideHitBoxes();
+                    }
+                    else
+                    {
+                        if ((myControlsScript.currentMove != null && myControlsScript.currentMove.cancelMoveWheLanding) ||
+                            myControlsScript.currentMove == null)
+                        {
+                            airAnimation = myMoveSetScript.basicMoves.landing;
+                            myControlsScript.KillCurrentMove();
+                        }
+                        myControlsScript.currentState = PossibleStates.Stand;
+                    }
+                    isBouncing = false;
+                    bounceTimes = 0;
+                    if (airAnimation != null && !character.GetComponent<Animation>().IsPlaying(airAnimation.name))
+                    {
+                        myMoveSetScript.playBasicMove(airAnimation);
+                    }
+                }
+
+                if (!myControlsScript.stunned && move == null)
+                {
+                    if (xForce == walkSpeed || xForce == -walkSpeed || zForce == walkSpeed || zForce == -walkSpeed)
+                    {
+                        myMoveSetScript.playBasicMove(myMoveSetScript.basicMoves.moveForward);
+                    }
+                    else if (xForce == runSpeed || xForce == -runSpeed || zForce == runSpeed || zForce == -runSpeed)
+                    {
+                        myMoveSetScript.playBasicMove(myMoveSetScript.basicMoves.run);
+                    }
+                }
+            }
+            else if (yForce > 0 || !isGrounded())
+            {
+                if (move != null && myControlsScript.currentState == PossibleStates.Stand)
+                    myControlsScript.currentState = PossibleStates.StraightJump;
+                if (move == null && yForce / verticalTotalForce > 0 && yForce / verticalTotalForce <= 1)
+                {
+                    if (isBouncing) return;
+                    BasicMoveInfo airAnimation = myControlsScript.stunned ?
+                        myMoveSetScript.basicMoves.getHitAir : myMoveSetScript.basicMoves.jumping;
+
+                    if (xForce == 0)
+                    {
+                        myControlsScript.currentState = PossibleStates.StraightJump;
+                    }
+                    else
+                    {
+                        if (xForce > 0)
+                            myControlsScript.currentState = PossibleStates.ForwardJump;
+
+                        if (xForce < 0)
+                            myControlsScript.currentState = PossibleStates.BackJump;
+                    }
+
+                    if (!character.GetComponent<Animation>().IsPlaying(airAnimation.name))
+                    {
+                        //character.animation[airAnimation].speed = character.animation[airAnimation].length * (appliedGravity/verticalTotalForce);
+                        character.GetComponent<Animation>()[airAnimation.name].speed = character.GetComponent<Animation>()[airAnimation.name].length / airTime;
+                        myMoveSetScript.playBasicMove(airAnimation);
+
+                    }
+                }
+            }
+           // if (xForce == 0 && yForce == 0 && zForce == 0)
+                faceDirection = 0;
+            
         }
 
         public bool isGrounded()
         {
             Vector3 p = transform.position + Vector3.up + new Vector3(0, 0f, 0);
 
-            if (Physics.RaycastAll(p, Vector3.down, 2.1f, groundMask).Length > 0)
+            if (Physics.RaycastAll(p, Vector3.down, 1f, groundMask).Length > 0)
             {
-                //if (transform.position.y != 0) transform.Translate(new Vector3(0, -transform.position.y, 0));
+                if (transform.position.y != 0) transform.Translate(new Vector3(0, -transform.position.y, 0));
                 return true;
             }
             return false;

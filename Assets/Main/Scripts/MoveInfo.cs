@@ -9,18 +9,9 @@ namespace MyFightGame{
         Left,
         Up,
         Down,
-        Button1,
-        Button2,
-        Button3,
-        Button4,
-        Button5,
-        Button6,
-        Button7,
-        Button8,
-        Button9,
-        Button10,
-        Button11,
-        Button12
+        Fist,// 拳
+        Kick,// 踢
+        Jump,// 跳
     }
 
     public enum InputType {

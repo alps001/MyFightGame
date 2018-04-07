@@ -12,11 +12,11 @@ namespace MyFightGame
         public float moveBackSpeed = 4f; // How fast this character can move backwards
         public float moveUpSpeed = 4f;
         public float moveDownSpeed = 4f;
-        public float runSpeed = 8f;
+        public float runSpeed = 20f;
         public bool highMovingFriction = true; // When releasing the horizontal controls character will stop imediatelly
         public float friction = 30f; // Friction used in case of highMovingFriction false. Also used when player is pushed
         public float jumpForce = 20f; // How high this character will jumps
-        public float jumpDistance = 8f; // How far this character will move horizontally while jumping
+        public float jumpForwardSpeed = 4f; // How far this character will move horizontally while jumping
         public bool cumulativeForce = true; // If this character is being juggled, should new forces add to or replace existing force?
         public int multiJumps = 1; // Can this character double or triple jump? Set how many times the character can jump here
         public float weight;

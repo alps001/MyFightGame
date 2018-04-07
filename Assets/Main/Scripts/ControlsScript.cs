@@ -35,7 +35,6 @@ namespace MyFightGame
         public MoveInfo storedMove;
 
         public Vector2 moveDirection;
-        public PreRunDirection readyToRun = PreRunDirection.None;
         public bool isRun;
         public float leftHeldTime;
         public float rightHeldTime;
@@ -132,29 +131,17 @@ namespace MyFightGame
                     //if (GlobalScript.prefs.blockOptions.blockType == BlockType.AutoBlock) potentialBlock = true;
                 }
             }
-
-            // 松开方向键设置跑动作的标识
-
-            if (moveDirection.x > 0)
-            {
-                readyToRun = PreRunDirection.Right;
-            }
-            else if (moveDirection.x < 0)
-            {
-                readyToRun = PreRunDirection.Left;
-            }
-            else
-            {
-                readyToRun = PreRunDirection.None;
-            }
+            
             bool hasAxisKeyDown = false;
             foreach (InputReferences inputRef in inputReferences)
             {
                 // 清空方向键 按下时间heldDown
                 if (inputRef.inputType != InputType.Button && inputRef.heldDown > 0 && Input.GetAxisRaw(inputRef.inputButtonName) == 0)
                 {
-                    if (inputRef.heldDown >= myInfo.chargeTiming)
+                    if (inputRef.heldDown >= myInfo.chargeTiming) {
                         storedMove = myMoveSetScript.getMove(new ButtonPress[] { inputRef.engineRelatedButton }, inputRef.heldDown, currentMove, true);
+                        
+                    }
                     inputRef.heldDown = 0;
                     if (inputRef.inputType == InputType.Left)
                     {
@@ -256,24 +243,63 @@ namespace MyFightGame
                             storedMoveTime = UFE.config.storedExecutionDelay;
                             return;
                         }
-                        else {
-                            if (readyToRun != PreRunDirection.None)
-                            {
-                                switch (readyToRun)
-                                {
-                                    case PreRunDirection.Left:
-                                        if (moveDirection.x < 0) isRun = true;
-                                        break;
-                                    case PreRunDirection.Right:
-                                        if (moveDirection.x > 0) isRun = true;
-                                        break;
-                                }
+                    }
+                }// END 方向键
 
+                // 按钮判断
+                if (inputRef.inputType == InputType.Button && !UFE.config.lockInputs)
+                {
+                    if (Input.GetButton(inputRef.inputButtonName))
+                    {
+                        // 多个按钮同时按下
+                    }
+
+                    // 单个按钮按下时可能执行的动作
+                    if (Input.GetButtonDown(inputRef.inputButtonName))
+                    {
+                        storedMove = myMoveSetScript.getMove(new ButtonPress[] { inputRef.engineRelatedButton }, 0, currentMove, false);
+                        if ((currentMove == null || currentMove.cancelable) && storedMove != null)
+                        {
+                            currentMove = storedMove;
+                            storedMove = null;
+                            return;
+                        }
+                        else if (storedMove != null)
+                        {
+                            storedMoveTime = UFE.config.storedExecutionDelay;
+                            return;
+                        }
+                        // 跳跃键按下
+                        if (inputRef.engineRelatedButton == ButtonPress.Jump) {
+                            if (currentMove == null)
+                            {
+                                if (myPhysicsScript.isGrounded()) myPhysicsScript.jump();
+                                if (inputRef.heldDown == 0)
+                                {
+                                    if (!myPhysicsScript.isGrounded() && myInfo.physics.multiJumps > 1)
+                                        myPhysicsScript.jump();
+                                }
                             }
+                        }
+                        
+                    }
+                    // 执行只有当按钮弹起才执行的动作
+                    if (Input.GetButtonUp(inputRef.inputButtonName))
+                    {
+                        storedMove = myMoveSetScript.getMove(new ButtonPress[] { inputRef.engineRelatedButton }, 0, currentMove, true);
+                        if ((currentMove == null || currentMove.cancelable) && storedMove != null)
+                        {
+                            currentMove = storedMove;
+                            storedMove = null;
+                        }
+                        else if (storedMove != null)
+                        {
+                            storedMoveTime = UFE.config.storedExecutionDelay;
+                            return;
                         }
                     }
                 }
-            }
+            }// END 按键列表循环
 
             float force = isRun ? myInfo.physics.runSpeed : myInfo.physics.walkSpeed;
             if (leftHeldTime != 0 && rightHeldTime != 0)
@@ -305,6 +331,7 @@ namespace MyFightGame
             }
 
             if (!hasAxisKeyDown) {
+                //readyToRun = PreRunDirection.None;
                 isRun = false;
             }
 
