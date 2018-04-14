@@ -142,6 +142,7 @@
     <Compile Include="Assets\UFE\Editor\ScriptableObjectUtility.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Assets\Main\Particles\FT_Sample\FT ImpactEffects Sample.txt" />
     <None Include="Assets\UFE\GUI\Shaders\GUI Alpha Enabled.shader" />
     <None Include="Assets\UFE\Particles\FT_Sample\FT ImpactEffects Sample.txt" />
     <None Include="Assets\UFE\Sounds\Music\license.txt" />

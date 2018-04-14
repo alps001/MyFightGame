@@ -103,9 +103,10 @@ namespace MyFightGame
             setVerticalData(myControlsScript.myInfo.physics.jumpForce);
         }
 
-        public void resetForces(bool resetX,bool resetZ)
+        public void resetForces(bool resetX,bool resetY,bool resetZ)
         {
             if (resetX) xForce = 0;
+            if (resetY) yForce = 0;
             if (resetZ) zForce = 0;
         }
 
@@ -116,12 +117,12 @@ namespace MyFightGame
             if (!myControlsScript.myInfo.physics.cumulativeForce)
             {
                 xForce = 0;
-                zForce = 0;
+                yForce = 0;
             }
-            if (zForce < 0 && push.y > 0) zForce = 0;
+            if (yForce < 0 && push.y > 0) yForce = 0;
             xForce += push.x;
-            zForce += push.y;
-            setVerticalData(zForce);
+            yForce += push.y;
+            setVerticalData(yForce);
         }
 
 

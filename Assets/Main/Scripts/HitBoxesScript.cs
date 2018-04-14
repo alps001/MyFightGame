@@ -24,7 +24,7 @@ namespace MyFightGame
 
     public class HitBoxesScript : MonoBehaviour
     {
-        public bool detect3dHits;
+        public bool detect3dHits = true;
         public HitBox[] hitBoxes;
 
         [HideInInspector]
@@ -41,7 +41,6 @@ namespace MyFightGame
         {
             controlsScript = transform.parent.gameObject.GetComponent<ControlsScript>();
             myMoveSetScript = GetComponent<MoveSetScript>();
-            detect3dHits = UFE.config.detect3D_Hits;
 
             foreach (HitBox hitBox in hitBoxes)
             {

@@ -366,6 +366,7 @@ namespace MyFightGame
         private MoveInfo TestMoveExecution(MoveInfo move, MoveInfo currentMove, ButtonPress[] buttonPress, bool inputUp, bool fromSequence)
         {
             if (move.onRelease && !inputUp) return null;
+            if (!move.onRelease && inputUp) return null;
             if (!HasEnoughGauge(move.gaugeUsage)) return null;
             if (move.previousMoves.Length > 0 && currentMove == null) return null;
             if (move.previousMoves.Length > 0 && !searchMove(currentMove.name, move.previousMoves)) return null;

@@ -281,7 +281,6 @@ namespace MyFightGame
                                 }
                             }
                         }
-                        
                     }
                     // 执行只有当按钮弹起才执行的动作
                     if (Input.GetButtonUp(inputRef.inputButtonName))
@@ -396,26 +395,26 @@ namespace MyFightGame
                 //}
 
                 // 生成该动作的发射物
-                //foreach (Projectile projectile in currentMove.projectiles)
-                //{
-                //    if (!projectile.casted && currentMove.currentFrame >= projectile.castingFrame)
-                //    {
-                //        if (projectile.projectilePrefab == null) continue;
-                //        projectile.casted = true;
+                foreach (Projectile projectile in currentMove.projectiles)
+                {
+                    if (!projectile.casted && currentMove.currentFrame >= projectile.castingFrame)
+                    {
+                        if (projectile.projectilePrefab == null) continue;
+                        projectile.casted = true;
 
-                //        if (projectile.projectilePrefab == null)
-                //            Debug.LogError("Projectile prefab for move " + currentMove.moveName + " not found. Make sure you have set the prefab correctly in the Move Editor");
-                //        GameObject pTemp = (GameObject)Instantiate(projectile.projectilePrefab,
-                //                                                       projectile.position.position,
-                //                                                       Quaternion.Euler(0, 0, projectile.directionAngle));
-                //        pTemp.AddComponent<ProjectileMoveScript>();
-                //        ProjectileMoveScript pTempScript = pTemp.GetComponent<ProjectileMoveScript>();
-                //        pTempScript.data = projectile;
-                //        pTempScript.opHitBoxesScript = opHitBoxesScript;
-                //        pTempScript.opControlsScript = opControlsScript;
-                //        pTempScript.mirror = mirror;
-                //    }
-                //}
+                        if (projectile.projectilePrefab == null)
+                            Debug.LogError("Projectile prefab for move " + currentMove.moveName + " not found. Make sure you have set the prefab correctly in the Move Editor");
+                        GameObject pTemp = (GameObject)Instantiate(projectile.projectilePrefab,
+                                                                       projectile.position.position,
+                                                                       Quaternion.Euler(0, 0, projectile.directionAngle));
+                        pTemp.AddComponent<ProjectileMoveScript>();
+                        ProjectileMoveScript pTempScript = pTemp.GetComponent<ProjectileMoveScript>();
+                        pTempScript.data = projectile;
+                        //pTempScript.opHitBoxesScript = opHitBoxesScript;
+                        //pTempScript.opControlsScript = opControlsScript;
+                        //pTempScript.mirror = mirror;
+                    }
+                }
                 // 播放动作的特效
                 //foreach (MoveParticleEffect particleEffect in currentMove.particleEffects)
                 //{
@@ -430,16 +429,17 @@ namespace MyFightGame
                 //        Destroy(pTemp, particleEffect.particleEffect.duration);
                 //    }
                 //}
+
                 // 应用动作施加的力
-                //foreach (AppliedForce addedForce in currentMove.appliedForces)
-                //{
-                //    if (!addedForce.casted && currentMove.currentFrame >= addedForce.castingFrame)
-                //    {
-                //        myPhysicsScript.resetForces(addedForce.resetPreviousHorizontal, addedForce.resetPreviousVertical);
-                //        myPhysicsScript.addForce(addedForce.force, 1);
-                //        addedForce.casted = true;
-                //    }
-                //}
+                foreach (AppliedForce addedForce in currentMove.appliedForces)
+                {
+                    if (!addedForce.casted && currentMove.currentFrame >= addedForce.castingFrame)
+                    {
+                        myPhysicsScript.resetForces(addedForce.resetPreviousHorizontal, addedForce.resetPreviousVertical,true);
+                        myPhysicsScript.addForce(addedForce.force, 1);
+                        addedForce.casted = true;
+                    }
+                }
 
                 // 播放动作的音效
                 //foreach (SoundEffect soundEffect in currentMove.soundEffects)
@@ -609,7 +609,7 @@ namespace MyFightGame
             }
             myPhysicsScript.applyForces(currentMove);
 
-            myPhysicsScript.resetForces(true, true);
+            myPhysicsScript.resetForces(true,false, true);
         }
 
         // Imediately cancels any move being executed

@@ -87,6 +87,7 @@
     <Compile Include="Assets\Main\Scripts\MoveInfo.cs" />
     <Compile Include="Assets\Main\Scripts\MoveSetScript.cs" />
     <Compile Include="Assets\Main\Scripts\PhysicsScript.cs" />
+    <Compile Include="Assets\Main\Scripts\ProjectileMoveScript.cs" />
     <Compile Include="Assets\Main\Scripts\UFE.cs" />
     <Compile Include="Assets\Main\Test\Test.cs" />
     <Compile Include="Assets\UFE\Scripts\CameraFade.cs" />
@@ -109,6 +110,7 @@
     <Compile Include="Assets\UFE\Scripts\UFE.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Assets\Main\Particles\FT_Sample\FT ImpactEffects Sample.txt" />
     <None Include="Assets\UFE\GUI\Shaders\GUI Alpha Enabled.shader" />
     <None Include="Assets\UFE\Particles\FT_Sample\FT ImpactEffects Sample.txt" />
     <None Include="Assets\UFE\Sounds\Music\license.txt" />
