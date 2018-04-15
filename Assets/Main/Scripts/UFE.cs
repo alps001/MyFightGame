@@ -15,6 +15,8 @@ public class UFE : MonoBehaviour {
 
         
 
+
+
         private void Awake()
         {
             inputConfig = mInputConfig;
@@ -23,8 +25,14 @@ public class UFE : MonoBehaviour {
 
         // Use this for initialization
         void Start () {
-		    
-	    }
+            GameObject p1 = new GameObject("Player1");
+            p1.AddComponent<ControlsScript>();
+            p1.AddComponent<PhysicsScript>();
+
+            GameObject p2 = new GameObject("Player2");
+            p2.AddComponent<ControlsScript>();
+            p2.AddComponent<PhysicsScript>();
+        }
 	
 	    // Update is called once per frame
 	    void Update () {

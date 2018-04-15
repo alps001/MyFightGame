@@ -1,9 +1,12 @@
-﻿
-using System.Collections.Generic;
+﻿using UnityEngine;
 using UnityEditor;
-using UnityEngine;
+using System.Collections;
+using System.Reflection;
+using System.Collections.Generic;
 
-namespace MyFightGame { 
+namespace MyFightGame
+{
+
     public class MoveEditorWindow : EditorWindow
     {
         public static MoveEditorWindow moveEditorWindow;
@@ -82,7 +85,7 @@ namespace MyFightGame {
         private GUIStyle labelStyle;
 
 
-        [MenuItem("Window/MyFightGameConfig/MoveInfo Editor")]
+        [MenuItem("Window/U.F.E./Move Editor")]
         public static void Init()
         {
             moveEditorWindow = EditorWindow.GetWindow<MoveEditorWindow>(false, "Move", true);
