@@ -680,7 +680,6 @@ namespace MyFightGame
                     //if (currentMove == myMoveSetScript.getIntro()) introPlayed = true;
                     KillCurrentMove();
                 }
-                
             }
             myPhysicsScript.applyForces(currentMove);
 
