@@ -19,7 +19,7 @@ public class ControlsScript : MonoBehaviour {
 	[HideInInspector]	public CharacterInfo opInfo;
 	
 	[HideInInspector]	public int mirror;
-	[HideInInspector]	public PossibleStates currentState;
+	/*[HideInInspector]	*/public PossibleStates currentState;
 	[HideInInspector]	public bool stunned;
 	[HideInInspector]	public bool blockStunned;
 	[HideInInspector]	public float stunTime;
@@ -30,7 +30,7 @@ public class ControlsScript : MonoBehaviour {
 	[HideInInspector]	public bool introPlayed;
 	[HideInInspector]	public int roundsWon;
 	[HideInInspector]	public bool isDead;
-	[HideInInspector]	public MoveInfo currentMove;
+	/*[HideInInspector]	*/public MoveInfo currentMove;
 	[HideInInspector]	public MoveInfo storedMove;
 	
 	private AnimatorStateInfo currentBaseState;

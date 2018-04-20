@@ -163,6 +163,40 @@ namespace MyFightGame
             {
                 if (verticalTotalForce != 0)
                 {
+                    if (bounceTimes < UFE.config.bounceOptions.maximumBounces && myControlsScript.stunned &&
+                    UFE.config.bounceOptions.bounceForce != Sizes.None &&
+                    yForce <= -UFE.config.bounceOptions.minimumBounceForce)
+                    {
+                        if (!UFE.config.bounceOptions.bounceHitBoxes) myHitBoxesScript.hideHitBoxes();
+                        if (UFE.config.bounceOptions.bounceForce == Sizes.Small)
+                        {
+                            addForce(new Vector2(0, -yForce / 2.4f), 1);
+                        }
+                        else if (UFE.config.bounceOptions.bounceForce == Sizes.Medium)
+                        {
+                            addForce(new Vector2(0, -yForce / 1.8f), 1);
+                        }
+                        else if (UFE.config.bounceOptions.bounceForce == Sizes.High)
+                        {
+                            addForce(new Vector2(0, -yForce / 1.2f), 1);
+                        }
+                        bounceTimes++;
+                        if (!isBouncing)
+                        {
+                            myControlsScript.stunTime += airTime + UFE.config.knockDownOptions.knockedOutTime;
+                            myMoveSetScript.playBasicMove(myMoveSetScript.basicMoves.bounce);
+                            if (UFE.config.bounceOptions.bouncePrefab != null)
+                            {
+                                GameObject pTemp = (GameObject)Instantiate(UFE.config.bounceOptions.bouncePrefab);
+                                pTemp.transform.parent = transform;
+                                pTemp.transform.localPosition = Vector3.zero;
+                                Destroy(pTemp, 3);
+                            }
+                            isBouncing = true;
+                        }
+                        return;
+                    }
+
                     verticalTotalForce = 0;
                     airTime = 0;
                     myMoveSetScript.totalAirMoves = 0;
@@ -236,6 +270,27 @@ namespace MyFightGame
                         character.GetComponent<Animation>()[airAnimation.name].speed = character.GetComponent<Animation>()[airAnimation.name].length / airTime;
                         myMoveSetScript.playBasicMove(airAnimation);
 
+                    }
+                }
+                else if (move == null && yForce / verticalTotalForce <= 0)
+                {
+                    BasicMoveInfo airAnimation;
+                    if (isBouncing)
+                    {
+                        airAnimation = myMoveSetScript.basicMoves.fallingFromBounce;
+                    }
+                    else
+                    {
+                        airAnimation = myControlsScript.stunned ?
+                            myMoveSetScript.basicMoves.getHitAir : myMoveSetScript.basicMoves.falling;
+                    }
+
+                    if (!character.GetComponent<Animation>().IsPlaying(airAnimation.name))
+                    {
+                        //character.animation[airAnimation].speed = character.animation[airAnimation].length * (appliedGravity/verticalTotalForce);
+                        //character.animation.CrossFade(airAnimation, GlobalScript.getCurrentMoveSet(myControlsScript.myInfo).interpolationSpeed);
+                        character.GetComponent<Animation>()[airAnimation.name].speed = character.GetComponent<Animation>()[airAnimation.name].length / airTime;
+                        myMoveSetScript.playBasicMove(airAnimation);
                     }
                 }
             }

@@ -43,6 +43,7 @@ namespace MyFightGame
         public float downHeldTime;
 
         public bool stunned;
+        public bool blockStunned;
         public float stunTime;
         public bool isBlocking;
 
@@ -418,7 +419,7 @@ namespace MyFightGame
                 normalColors = colorList.ToArray();
             }
 
-            // 两个hitbox碰撞的越多，退的越远（攻击碰撞？）
+            // 两个hitbox碰撞的越多，退的越远（攻击碰撞？）身体碰撞体
             if (Vector3.Distance(transform.position, opponent.transform.position) < 10)
             {
                 float totalHits = myHitBoxesScript.testCollision(opHitBoxesScript.hitBoxes);
@@ -680,10 +681,60 @@ namespace MyFightGame
                     //if (currentMove == myMoveSetScript.getIntro()) introPlayed = true;
                     KillCurrentMove();
                 }
+
+                
             }
+            // 击晕判断
+            if ((stunned || blockStunned) && stunTime > 0 && !myPhysicsScript.freeze)
+            {
+                // 动画减速
+                character.GetComponent<Animation>()[currentHitAnimation].speed -= hitStunDeceleration * Time.deltaTime;
+                // 空中覆盖时空中连击不减少眩晕时间
+                if (UFE.config.comboOptions.neverAirRecover && !myPhysicsScript.isGrounded())
+                {
+                    stunTime = 1;
+                }
+                else
+                {
+                    stunTime -= Time.deltaTime;
+                }
+                /*if (myPhysicsScript.debugger != null){
+                    myPhysicsScript.debugger.text = "";
+                    myPhysicsScript.debugger.text += "<color=#003300>animation speed: "+ character.animation[currentHitAnimation].speed +"</color>\n";
+                    myPhysicsScript.debugger.text += "<color=#003300>stunTime: "+ stunTime +"</color>\n";
+                }*/
+                // 倒地爬起判断
+                if (!isDead && stunTime <= UFE.config.knockDownOptions.getUpTime)
+                {
+                    if (currentState == PossibleStates.FallDown && myPhysicsScript.isGrounded())
+                    {
+                        currentState = PossibleStates.Stand;
+                        character.GetComponent<Animation>().Play("getUp");
+                    }
+                }
+                // 眩晕时间结束
+                if (stunTime <= 0) ReleaseStun();
+            }
+
             myPhysicsScript.applyForces(currentMove);
 
             myPhysicsScript.resetForces(true,false, true);
+        }
+
+        // Release character to be playable again
+        private void ReleaseStun()
+        {
+            if (!stunned && !blockStunned) return;
+            //if (!isBlocking && comboHits > 1)
+            //{
+            //    UFE.FireAlert(SetStringValues(UFE.config.selectedLanguage.combo, opInfo), opInfo);
+            //}
+            stunned = false;
+            blockStunned = false;
+            stunTime = 0;
+            comboHits = 0;
+            isBlocking = false;
+            myHitBoxesScript.showHitBoxes();
         }
 
         // Imediately cancels any move being executed

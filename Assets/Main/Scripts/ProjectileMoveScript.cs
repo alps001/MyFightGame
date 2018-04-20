@@ -21,14 +21,14 @@ public class ProjectileMoveScript : MonoBehaviour {
 	
 	void Start () {
 		gameObject.AddComponent<SphereCollider>();
-		//if (opControlsScript.gameObject.name == "Player1"){
-		//	gameObject.layer = LayerMask.NameToLayer("Projectile1");
-		//	opProjectileLayer = LayerMask.NameToLayer("Projectile2");
-		//}else{
-		//	gameObject.layer = LayerMask.NameToLayer("Projectile2");
-		//	opProjectileLayer = LayerMask.NameToLayer("Projectile1");
-		//}
-		//opProjectileMask = 1 << opProjectileLayer;
+		if (opControlsScript.gameObject.name == "Player1"){
+			gameObject.layer = LayerMask.NameToLayer("Projectile1");
+			opProjectileLayer = LayerMask.NameToLayer("Projectile2");
+		}else{
+			gameObject.layer = LayerMask.NameToLayer("Projectile2");
+			opProjectileLayer = LayerMask.NameToLayer("Projectile1");
+		}
+		opProjectileMask = 1 << opProjectileLayer;
 
 		//if (mirror == -1) {
 		//	directionVector = Vector3.left;
@@ -48,69 +48,101 @@ public class ProjectileMoveScript : MonoBehaviour {
 	}
 	
 	void FixedUpdate () {
-		//if (myPhysicsScript.freeze) return;
+		
 		if (isHit > 0) {
 			isHit -= Time.deltaTime;
 			return;
 		}
 		transform.Translate(movement * Time.deltaTime);
-		
-		//if (opHitBoxesScript.testCollision(blockableArea) != Vector3.zero) {
-		//	opControlsScript.CheckBlocking(true);
-		//}
 
-		//if (data.projectileCollision){
-		//	RaycastHit raycastHit = new RaycastHit();
-		//	if (Physics.SphereCast(transform.position, data.hitRadius * (data.speed * .1f), Vector3.forward, out raycastHit, 1, opProjectileMask)) {
-		//		if (data.impactPrefab != null){
-		//			GameObject hitEffect = (GameObject) Instantiate(data.impactPrefab, transform.position, Quaternion.Euler(0,0,data.directionAngle));
-		//			Destroy(hitEffect, 1);
-		//		}
-		//		totalHits --;
-		//		if (totalHits <= 0){
-		//			Destroy(gameObject);
-		//		}
-		//		isHit = .3f;
-		//		transform.Translate(movement * -1 * Time.deltaTime);
-		//	}
-		//}
+            //if (opHitBoxesScript.testCollision(blockableArea) != Vector3.zero)
+            //{
+            //    opControlsScript.CheckBlocking(true);
+            //}
 
-		//if (opHitBoxesScript.testCollision(transform.position, data.hitRadius)) {
-		//	//Vector3 newPos = transform.position + Vector3.back;
-		//	if (data.impactPrefab != null){
-		//		GameObject hitEffect = (GameObject) Instantiate(data.impactPrefab, transform.position, Quaternion.Euler(0,0,data.directionAngle));
-		//		Destroy(hitEffect, 1);
-		//	}
-		//	totalHits --;
-		//	if (totalHits <= 0){
-		//		Destroy(gameObject);
-		//	}
+            if (data.projectileCollision)
+            {
+                RaycastHit raycastHit = new RaycastHit();
+                if (Physics.SphereCast(transform.position, data.hitRadius * (data.speed * .1f), Vector3.forward, out raycastHit, 1, opProjectileMask))
+                {
+                    if (data.impactPrefab != null)
+                    {
+                        GameObject hitEffect = (GameObject)Instantiate(data.impactPrefab, transform.position, Quaternion.Euler(0, 0, data.directionAngle));
+                        Destroy(hitEffect, 1);
+                    }
+                    totalHits--;
+                    if (totalHits <= 0)
+                    {
+                        Destroy(gameObject);
+                    }
+                    isHit = .3f;
+                    transform.Translate(movement * -1 * Time.deltaTime);
+                }
+            }
+            if (data.projectileCollision)
+            {
+                RaycastHit raycastHit = new RaycastHit();
+                if (Physics.SphereCast(transform.position, data.hitRadius * (data.speed * .1f), Vector3.forward, out raycastHit, 1, opProjectileMask))
+                {
+                    if (data.impactPrefab != null)
+                    {
+                        GameObject hitEffect = (GameObject)Instantiate(data.impactPrefab, transform.position, Quaternion.Euler(0, 0, data.directionAngle));
+                        Destroy(hitEffect, 1);
+                    }
+                    totalHits--;
+                    if (totalHits <= 0)
+                    {
+                        Destroy(gameObject);
+                    }
+                    isHit = .3f;
+                    transform.Translate(movement * -1 * Time.deltaTime);
+                }
+            }
 
-		//	isHit = opControlsScript.GetFreezingTime(data.hitStrengh) * 1.2f;
-		//	Hit hit = new Hit();
-		//	hit.hitType = data.hitType;
-		//	hit.hitStrengh = data.hitStrengh;
-		//	hit.hitStunType = HitStunType.Frames;
-		//	hit.hitStunOnHit = data.hitStunOnHit;
-		//	hit.hitStunOnBlock = data.hitStunOnBlock;
-		//	hit.damageOnHit = data.damageOnHit;
-		//	hit.damageType = data.damageType;
-		//	hit.resetPreviousHorizontalPush = true;
-		//	hit.pushForce = data.pushForce;
-		//	hit.pullEnemyIn = new PullIn();
-		//	hit.pullEnemyIn.enemyBodyPart = BodyPart.none;
-			
-		//	if (!opControlsScript.stunned && opControlsScript.isBlocking && opControlsScript.TestBlockStances(hit.hitType)){
-		//		opControlsScript.GetHitBlocking(hit, 20, transform.position);
-		//	}else if (opControlsScript.potentialParry > 0 && opControlsScript.TestParryStances(hit.hitType)){
-		//		opControlsScript.GetHitParry(hit, transform.position);
-		//	}else{
-		//		opControlsScript.GetHit(hit, 30, Vector3.zero);
-		//	}
-			
-		//	opControlsScript.CheckBlocking(false);
-		//}
-	}
+            if (opHitBoxesScript.testCollision(transform.position, data.hitRadius))
+            {
+                //Vector3 newPos = transform.position + Vector3.back;
+                if (data.impactPrefab != null)
+                {
+                    GameObject hitEffect = (GameObject)Instantiate(data.impactPrefab, transform.position, Quaternion.Euler(0, 0, data.directionAngle));
+                    Destroy(hitEffect, 1);
+                }
+                totalHits--;
+                if (totalHits <= 0)
+                {
+                    Destroy(gameObject);
+                }
+
+                isHit = opControlsScript.GetFreezingTime(data.hitStrengh) * 1.2f;
+                Hit hit = new Hit();
+                hit.hitType = data.hitType;
+                hit.hitStrengh = data.hitStrengh;
+                hit.hitStunType = HitStunType.Frames;
+                hit.hitStunOnHit = data.hitStunOnHit;
+                hit.hitStunOnBlock = data.hitStunOnBlock;
+                hit.damageOnHit = data.damageOnHit;
+                hit.damageType = data.damageType;
+                hit.resetPreviousHorizontalPush = true;
+                hit.pushForce = data.pushForce;
+                hit.pullEnemyIn = new PullIn();
+                hit.pullEnemyIn.enemyBodyPart = BodyPart.none;
+
+                //if (!opControlsScript.stunned && opControlsScript.isBlocking && opControlsScript.TestBlockStances(hit.hitType))
+                //{
+                //    opControlsScript.GetHitBlocking(hit, 20, transform.position);
+                //}
+                //else if (opControlsScript.potentialParry > 0 && opControlsScript.TestParryStances(hit.hitType))
+                //{
+                //    opControlsScript.GetHitParry(hit, transform.position);
+                //}
+                //else
+                //{
+                    opControlsScript.GetHit(hit, 30, Vector3.zero);
+                //}
+
+                //opControlsScript.CheckBlocking(false);
+            }
+        }
 	
 	void OnDrawGizmos() {
 		Gizmos.color = Color.cyan;

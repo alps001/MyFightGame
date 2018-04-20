@@ -1249,6 +1249,8 @@ namespace MyFightGame
                                             }
                                             EditorGUIUtility.labelWidth = 150;
 
+                                            List<HurtBox> elList = new List<HurtBox>(moveInfo.hits[i].hurtBoxes);
+                                            //Debug.Log("moveInfo.hits[i].hurtBoxes.Length :"+ moveInfo.hits[i].hurtBoxes.Length);
                                             // Hurt Boxes Toggle
                                             int amount = moveInfo.hits[i].hurtBoxes != null ? moveInfo.hits[i].hurtBoxes.Length : 0;
                                             moveInfo.hits[i].hurtBoxesToggle = EditorGUILayout.Foldout(moveInfo.hits[i].hurtBoxesToggle, "Hurt Boxes (" + amount + ")", EditorStyles.foldout);
@@ -1280,8 +1282,10 @@ namespace MyFightGame
                                                             EditorGUILayout.EndVertical();
                                                         }
                                                     }
-                                                    if (StyledButton("New Hurt Box"))
+                                                    if (StyledButton("New Hurt Box")) {
+                                                        Debug.Log("moveInfo.hits[i].hurtBoxes:" + (moveInfo.hits[i].hurtBoxes == null));
                                                         moveInfo.hits[i].hurtBoxes = AddElement<HurtBox>(moveInfo.hits[i].hurtBoxes, new HurtBox());
+                                                    }
 
                                                     EditorGUI.indentLevel -= 1;
                                                 }
